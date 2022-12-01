@@ -1,0 +1,37 @@
+{
+    "name": "saturday-connector",
+    "config": 
+    {
+        "connector.class" : "io.debezium.connector.sqlserver.SqlServerConnector",
+        "tasks.max" : "1",
+        "database.server.name" : "Bingo",
+        "database.hostname" : "113.190.248.146",
+        "database.port" : "1433",
+        "database.user" : "sa",
+        "database.password" : "Euroland123!@#",
+        "database.names" : "Daily,shark",
+        "table.include.list": "dbo.frankfurt_daily_history, dbo.Instrument, dbo.InstrumentPrice",
+        "column.include.list": "dbo.Instrument.(Id|Isin|MarketId|Ticker),dbo.frankfurt_daily_history.*,dbo.InstrumentPrice.*",
+
+        "database.history.kafka.bootstrap.servers" : "broker:9092",
+        "database.history.kafka.topic": "schema-changes.saturday",
+
+        "transforms": "unwrap,reroute,removeString",
+
+        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "transforms.unwrap.add.fields": "source.table",
+
+        "transforms.reroute.type": "io.debezium.transforms.ByLogicalTableRouter",
+        "transforms.reroute.topic.regex": "(.*)_daily_history(.*)",
+        "transforms.reroute.topic.replacement": "daily",
+
+        "key.converter": "io.confluent.connect.avro.AvroConverter",
+        "key.converter.schema.registry.url": "http://schema-registry:8081",
+        "value.converter": "io.confluent.connect.avro.AvroConverter",
+        "value.converter.schema.registry.url": "http://schema-registry:8081",
+
+        "transforms.removeString.type": "org.apache.kafka.connect.transforms.RegexRouter",
+        "transforms.removeString.regex": "Bingo.shark.dbo.Instrument",
+        "transforms.removeString.replacement": "instrument"
+    }
+}

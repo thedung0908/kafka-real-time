@@ -1,0 +1,35 @@
+{
+    "name": "friday-avro-connector",
+    "config": 
+    {
+        "connector.class" : "io.debezium.connector.sqlserver.SqlServerConnector",
+        "tasks.max" : "1",
+        "database.server.name" : "MSSQLSERVER01",
+        "database.hostname" : "10.10.15.141",
+        "database.port" : "49172",
+        "database.user" : "pvt",
+        "database.password" : "12345678",
+        "database.names" : "DataProviders,Friday",
+        "table.include.list": "dbo.frankfurt_daily_history, dbo.london_daily_history, dbo.Instruments",
+        "database.history.kafka.bootstrap.servers" : "broker:29092",
+        "database.history.kafka.topic": "schema-changes.avrotest",
+
+        "transforms": "unwrap,reroute,removeString",
+
+        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "transforms.unwrap.add.fields": "source.table",
+
+        "transforms.reroute.type": "io.debezium.transforms.ByLogicalTableRouter",
+        "transforms.reroute.topic.regex": "(.*)_daily_history(.*)",
+        "transforms.reroute.topic.replacement": "daily",
+
+        "key.converter": "io.confluent.connect.avro.AvroConverter",
+        "key.converter.schema.registry.url": "http://schema-registry:8081",
+        "value.converter": "io.confluent.connect.avro.AvroConverter",
+        "value.converter.schema.registry.url": "http://schema-registry:8081",
+
+        "transforms.removeString.type": "org.apache.kafka.connect.transforms.RegexRouter",
+        "transforms.removeString.regex": "MSSQLSERVER01.Friday.dbo.Instruments",
+        "transforms.removeString.replacement": "instrument"
+    }
+}
